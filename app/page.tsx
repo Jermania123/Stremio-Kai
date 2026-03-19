@@ -3,9 +3,10 @@
 import { Navbar } from "@/components/navbar"
 import { AddonProvider } from "@/components/addon-provider"
 import { ContentRow } from "@/components/content-row"
+import { HeroBillboard } from "@/components/hero-billboard"
 import { useHomeCatalogs } from "@/lib/stremio/hooks"
 import { useAddonStore } from "@/lib/stremio/store"
-import { Play } from "lucide-react"
+import { Play, Plus } from "lucide-react"
 import Link from "next/link"
 
 function HomePage() {
@@ -13,39 +14,56 @@ function HomePage() {
   const { getContinueWatching, watchlist } = useAddonStore()
   const continueWatching = getContinueWatching()
 
+  // Get featured items for hero from the first catalog with data
+  const featuredCatalog = catalogs.find((c) => c.data.length > 0)
+  const featuredItems = featuredCatalog?.data.slice(0, 5) || []
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       {/* Main content */}
-      <main className="pb-20 pt-14 lg:pb-8 lg:pl-64 lg:pt-0">
-        {/* Hero section */}
-        <section className="relative h-64 overflow-hidden bg-gradient-to-b from-primary/20 to-background lg:h-80">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.3),transparent_50%)]" />
-          <div className="relative flex h-full flex-col items-center justify-center px-4 text-center">
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/20 glow">
-              <span className="text-4xl font-bold text-primary">K</span>
+      <main className="pb-20 lg:pb-8">
+        {/* Hero Billboard */}
+        {featuredItems.length > 0 ? (
+          <HeroBillboard items={featuredItems} />
+        ) : (
+          // Placeholder hero when no content
+          <section className="relative flex h-[60vh] min-h-[400px] items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background" />
+            <div className="relative z-10 flex flex-col items-center px-6 text-center">
+              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/20">
+                <span className="text-5xl font-bold text-primary">K</span>
+              </div>
+              <h1 className="mb-3 text-3xl font-bold text-foreground lg:text-4xl">
+                Welcome to Stremio Kai
+              </h1>
+              <p className="mb-6 max-w-md text-muted-foreground">
+                Browse and stream movies and series from your favorite addons
+              </p>
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                <Plus className="h-5 w-5" />
+                Install Addons
+              </Link>
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-foreground lg:text-3xl">
-              Welcome to Stremio Kai
-            </h1>
-            <p className="max-w-md text-sm text-muted-foreground lg:text-base">
-              Browse movies and series from your installed addons
-            </p>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Content rows */}
-        <div className="mt-6 flex flex-col gap-8 lg:px-6">
-          {/* Continue Watching */}
+        <div className="-mt-20 relative z-10 flex flex-col gap-10 pt-4">
+          {/* Continue Watching - Landscape cards like Stremio Kai */}
           {continueWatching.length > 0 && (
             <ContentRow
               title="Continue Watching"
+              variant="landscape"
               items={continueWatching.map((cw) => ({
                 id: cw.meta.id,
                 type: cw.meta.type as "movie" | "series",
                 name: cw.meta.name,
-                poster: cw.meta.poster,
+                poster: cw.meta.background || cw.meta.poster,
                 releaseInfo: `${Math.round(cw.progress * 100)}% watched`,
               }))}
             />
@@ -63,11 +81,12 @@ function HomePage() {
                 releaseInfo: m.releaseInfo,
                 imdbRating: m.imdbRating,
               }))}
+              seeAllHref="/library"
             />
           )}
 
           {/* Catalog rows */}
-          {catalogs.map((catalog) => (
+          {catalogs.map((catalog, index) => (
             <ContentRow
               key={catalog.title}
               title={catalog.title}
@@ -80,22 +99,24 @@ function HomePage() {
                 imdbRating: m.imdbRating,
               }))}
               isLoading={catalog.isLoading}
+              // Alternate between landscape and poster for visual variety
+              variant={index === 0 ? "landscape" : "poster"}
             />
           ))}
 
           {/* Empty state if no catalogs loaded yet */}
-          {catalogs.every((c) => c.data.length === 0 && !c.isLoading) && (
-            <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
-              <Play className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h2 className="mb-2 text-lg font-medium text-foreground">
-                No content yet
+          {catalogs.every((c) => c.data.length === 0 && !c.isLoading) && featuredItems.length === 0 && (
+            <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+              <Play className="mb-4 h-16 w-16 text-muted-foreground" />
+              <h2 className="mb-2 text-xl font-medium text-foreground">
+                No content available
               </h2>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Install addons to start browsing content
+              <p className="mb-6 text-muted-foreground">
+                Install addons to start browsing movies and series
               </p>
               <Link
                 href="/settings"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Manage Addons
               </Link>

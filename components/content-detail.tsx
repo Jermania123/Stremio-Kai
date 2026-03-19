@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useMeta, useStreams } from "@/lib/stremio/hooks"
 import { useAddonStore } from "@/lib/stremio/store"
 import type { Video, Stream } from "@/lib/stremio/types"
 import { VideoPlayer } from "./video-player"
+import { Navbar } from "./navbar"
 import {
   Play,
   Star,
@@ -15,6 +17,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  ArrowLeft,
+  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -93,8 +97,11 @@ export function ContentDetail({ type, id }: ContentDetailProps) {
 
   if (!meta) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Content not found</p>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex min-h-[80vh] items-center justify-center">
+          <p className="text-muted-foreground">Content not found</p>
+        </div>
       </div>
     )
   }
@@ -111,235 +118,272 @@ export function ContentDetail({ type, id }: ContentDetailProps) {
   }
 
   return (
-    <div className="relative">
-      {/* Background */}
-      {meta.background && (
-        <div className="absolute inset-x-0 top-0 h-64 overflow-hidden lg:h-80">
-          <Image
-            src={meta.background}
-            alt=""
-            fill
-            className="object-cover opacity-30"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      {/* Hero Background */}
+      <div className="relative">
+        {/* Background image with overlay */}
+        <div className="absolute inset-0 h-[70vh] overflow-hidden">
+          {(meta.background || meta.poster) && (
+            <Image
+              src={meta.background || meta.poster || ""}
+              alt=""
+              fill
+              className="object-cover"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         </div>
-      )}
 
-      {/* Content */}
-      <div className="relative px-4 py-6 lg:px-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-          {/* Poster */}
-          <div className="flex-shrink-0">
-            <div className="relative mx-auto aspect-[2/3] w-40 overflow-hidden rounded-lg border border-border shadow-xl lg:w-56">
-              {meta.poster ? (
-                <Image
-                  src={meta.poster}
-                  alt={meta.name}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center bg-muted">
-                  <Play className="h-12 w-12 text-muted-foreground" />
+        {/* Content */}
+        <div className="relative px-6 pb-8 pt-32 lg:px-16 lg:pt-40">
+          {/* Back button */}
+          <Link
+            href="/"
+            className="mb-6 inline-flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Link>
+
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:gap-12">
+            {/* Poster */}
+            <div className="flex-shrink-0 hidden lg:block">
+              <div className="relative aspect-[2/3] w-64 overflow-hidden rounded-xl shadow-2xl">
+                {meta.poster ? (
+                  <Image
+                    src={meta.poster}
+                    alt={meta.name}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-muted">
+                    <Play className="h-16 w-16 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 max-w-3xl">
+              <h1 className="mb-4 text-4xl font-bold text-foreground text-balance lg:text-5xl">
+                {meta.name}
+              </h1>
+
+              {/* Meta info */}
+              <div className="mb-5 flex flex-wrap items-center gap-4 text-sm">
+                {meta.imdbRating && (
+                  <span className="flex items-center gap-1.5 rounded-md bg-yellow-500/20 px-3 py-1 text-yellow-400">
+                    <Star className="h-4 w-4 fill-yellow-400" />
+                    {meta.imdbRating}
+                  </span>
+                )}
+                {meta.releaseInfo && (
+                  <span className="flex items-center gap-1.5 text-foreground/70">
+                    <Calendar className="h-4 w-4" />
+                    {meta.releaseInfo}
+                  </span>
+                )}
+                {meta.runtime && (
+                  <span className="flex items-center gap-1.5 text-foreground/70">
+                    <Clock className="h-4 w-4" />
+                    {meta.runtime}
+                  </span>
+                )}
+              </div>
+
+              {/* Genres */}
+              {meta.genres && meta.genres.length > 0 && (
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {meta.genres.map((genre) => (
+                    <span
+                      key={genre}
+                      className="rounded-full border border-border px-4 py-1.5 text-sm text-foreground/80"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Description */}
+              {meta.description && (
+                <p className="mb-6 line-clamp-4 text-foreground/70 leading-relaxed lg:text-lg">
+                  {meta.description}
+                </p>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => handlePlay()}
+                  className="flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-105"
+                >
+                  <Play className="h-6 w-6 fill-current" />
+                  {type === "movie" ? "Watch Now" : "Play"}
+                </button>
+                <button
+                  onClick={toggleWatchlist}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-6 py-4 font-semibold transition-all",
+                    inWatchlist
+                      ? "bg-primary/20 text-primary"
+                      : "bg-foreground/10 text-foreground/80 hover:bg-foreground/20 hover:text-foreground"
+                  )}
+                >
+                  {inWatchlist ? (
+                    <BookmarkCheck className="h-5 w-5" />
+                  ) : (
+                    <Bookmark className="h-5 w-5" />
+                  )}
+                  {inWatchlist ? "In Watchlist" : "Watchlist"}
+                </button>
+              </div>
+
+              {/* Cast */}
+              {meta.cast && meta.cast.length > 0 && (
+                <div className="mt-6">
+                  <span className="text-sm text-foreground/60">
+                    <strong className="text-foreground/80">Cast:</strong>{" "}
+                    {meta.cast.slice(0, 5).join(", ")}
+                  </span>
                 </div>
               )}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Info */}
-          <div className="flex-1">
-            <h1 className="mb-2 text-2xl font-bold text-foreground lg:text-3xl">
-              {meta.name}
-            </h1>
-
-            {/* Meta info */}
-            <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              {meta.releaseInfo && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {meta.releaseInfo}
-                </span>
-              )}
-              {meta.runtime && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {meta.runtime}
-                </span>
-              )}
-              {meta.imdbRating && (
-                <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                  {meta.imdbRating}
-                </span>
-              )}
-            </div>
-
-            {/* Genres */}
-            {meta.genres && meta.genres.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-2">
-                {meta.genres.map((genre) => (
-                  <span
-                    key={genre}
-                    className="rounded-full border border-border bg-secondary px-3 py-1 text-xs text-muted-foreground"
+      {/* Episodes (for series) */}
+      {type === "series" && seasons && seasonNumbers.length > 0 && (
+        <section className="px-6 py-10 lg:px-16">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-foreground">Episodes</h2>
+            
+            {/* Season selector */}
+            {seasonNumbers.length > 1 && (
+              <div className="flex gap-2">
+                {seasonNumbers.map((season) => (
+                  <button
+                    key={season}
+                    onClick={() => setSelectedSeason(season)}
+                    className={cn(
+                      "rounded-full px-4 py-2 text-sm font-medium transition-all",
+                      selectedSeason === season
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-foreground/10 text-foreground/70 hover:bg-foreground/20"
+                    )}
                   >
-                    {genre}
-                  </span>
+                    Season {season}
+                  </button>
                 ))}
               </div>
             )}
-
-            {/* Action buttons */}
-            <div className="mb-6 flex flex-wrap gap-3">
-              <button
-                onClick={() => handlePlay()}
-                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                <Play className="h-5 w-5 fill-current" />
-                {type === "movie" ? "Watch Now" : "Play"}
-              </button>
-              <button
-                onClick={toggleWatchlist}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg border px-4 py-3 font-medium transition-colors",
-                  inWatchlist
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-                )}
-              >
-                {inWatchlist ? (
-                  <BookmarkCheck className="h-5 w-5" />
-                ) : (
-                  <Bookmark className="h-5 w-5" />
-                )}
-                {inWatchlist ? "In Watchlist" : "Add to Watchlist"}
-              </button>
-            </div>
-
-            {/* Description */}
-            {meta.description && (
-              <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
-                {meta.description}
-              </p>
-            )}
-
-            {/* Cast */}
-            {meta.cast && meta.cast.length > 0 && (
-              <div className="mt-4">
-                <span className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Cast:</strong>{" "}
-                  {meta.cast.slice(0, 5).join(", ")}
-                </span>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Episodes (for series) */}
-        {type === "series" && seasons && seasonNumbers.length > 0 && (
-          <section className="mt-8">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">Episodes</h2>
-              
-              {/* Season selector */}
-              {seasonNumbers.length > 1 && (
-                <select
-                  value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(Number(e.target.value))}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
-                >
-                  {seasonNumbers.map((season) => (
-                    <option key={season} value={season}>
-                      Season {season}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              {displayedEpisodes.map((video) => (
-                <button
-                  key={video.id}
-                  onClick={() => handlePlay(video)}
-                  className="flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary"
-                >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {displayedEpisodes.map((video) => (
+              <button
+                key={video.id}
+                onClick={() => handlePlay(video)}
+                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-foreground/5 text-left transition-all hover:border-primary hover:bg-foreground/10"
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-muted">
                   {video.thumbnail ? (
-                    <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded bg-muted">
-                      <Image
-                        src={video.thumbnail}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                    <Image
+                      src={video.thumbnail}
+                      alt={video.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
                   ) : (
-                    <div className="flex h-16 w-28 flex-shrink-0 items-center justify-center rounded bg-muted">
-                      <Play className="h-6 w-6 text-muted-foreground" />
+                    <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-muted">
+                      <Play className="h-10 w-10 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium text-foreground truncate">
-                      {video.episode && `E${video.episode}. `}
-                      {video.title}
-                    </h3>
-                    {video.overview && (
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {video.overview}
-                      </p>
-                    )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/40 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Play className="h-6 w-6 fill-current ml-0.5" />
+                    </div>
                   </div>
-                  <Play className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-
-            {currentSeasonEpisodes.length > 10 && (
-              <button
-                onClick={() => setShowAllEpisodes(!showAllEpisodes)}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-3 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-              >
-                {showAllEpisodes ? (
-                  <>
-                    Show Less <ChevronUp className="h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    Show All {currentSeasonEpisodes.length} Episodes{" "}
-                    <ChevronDown className="h-4 w-4" />
-                  </>
-                )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-medium text-foreground">
+                    {video.episode && `E${video.episode}. `}
+                    {video.title}
+                  </h3>
+                  {video.overview && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                      {video.overview}
+                    </p>
+                  )}
+                </div>
               </button>
-            )}
-          </section>
-        )}
+            ))}
+          </div>
 
-        {/* Stream selection (when video is selected but no stream yet) */}
-        {selectedVideo && !selectedStream && (
-          <section className="mt-8">
-            <h2 className="mb-4 text-xl font-semibold text-foreground">
-              Select Stream
-            </h2>
+          {currentSeasonEpisodes.length > 10 && (
+            <button
+              onClick={() => setShowAllEpisodes(!showAllEpisodes)}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-border py-4 text-foreground/70 transition-all hover:border-primary hover:text-primary"
+            >
+              {showAllEpisodes ? (
+                <>
+                  Show Less <ChevronUp className="h-5 w-5" />
+                </>
+              ) : (
+                <>
+                  Show All {currentSeasonEpisodes.length} Episodes{" "}
+                  <ChevronDown className="h-5 w-5" />
+                </>
+              )}
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* Stream selection modal */}
+      {selectedVideo && !selectedStream && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-lg rounded-t-2xl bg-card p-6 shadow-2xl sm:rounded-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">
+                Select Stream
+              </h2>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
             {streamsLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-16 animate-pulse rounded-lg bg-muted"
+                    className="h-16 animate-pulse rounded-xl bg-muted"
                   />
                 ))}
               </div>
             ) : streams && streams.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {streams.map((stream, index) => (
                   <button
                     key={index}
                     onClick={() => handleSelectStream(stream)}
                     disabled={!stream.url && !stream.externalUrl}
-                    className="flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary disabled:opacity-50"
+                    className="flex w-full items-center gap-4 rounded-xl border border-border bg-foreground/5 p-4 text-left transition-all hover:border-primary hover:bg-foreground/10 disabled:opacity-50"
                   >
-                    <Play className="h-5 w-5 flex-shrink-0 text-primary" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+                      <Play className="h-5 w-5 fill-current ml-0.5" />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-foreground">
                         {stream.name || stream.title || "Stream"}
@@ -354,33 +398,27 @@ export function ContentDetail({ type, id }: ContentDetailProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">
+              <p className="py-8 text-center text-muted-foreground">
                 No streams available for this content
               </p>
             )}
-            
-            <button
-              onClick={() => setSelectedVideo(null)}
-              className="mt-4 text-sm text-muted-foreground hover:text-foreground"
-            >
-              Cancel
-            </button>
-          </section>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function ContentDetailSkeleton() {
   return (
-    <div className="px-4 py-6 lg:px-6">
-      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-        <div className="mx-auto h-60 w-40 animate-pulse rounded-lg bg-muted lg:h-80 lg:w-56" />
-        <div className="flex-1 space-y-4">
-          <div className="h-8 w-3/4 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-          <div className="h-24 animate-pulse rounded bg-muted" />
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="relative">
+        <div className="h-[50vh] animate-pulse bg-muted" />
+        <div className="px-6 py-8 lg:px-16">
+          <div className="h-12 w-2/3 animate-pulse rounded-lg bg-muted mb-4" />
+          <div className="h-6 w-1/3 animate-pulse rounded bg-muted mb-6" />
+          <div className="h-32 animate-pulse rounded-lg bg-muted" />
         </div>
       </div>
     </div>

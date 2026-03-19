@@ -43,22 +43,22 @@ function DiscoverPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="pb-20 pt-14 lg:pb-8 lg:pl-64 lg:pt-0">
+      <main className="pb-20 pt-20 lg:pb-8 lg:pt-24">
         {/* Header */}
-        <div className="border-b border-border bg-card/50 px-4 py-6 lg:px-6">
-          <h1 className="mb-4 text-2xl font-bold text-foreground">Discover</h1>
+        <div className="px-6 py-8 lg:px-16">
+          <h1 className="mb-6 text-3xl font-bold text-foreground lg:text-4xl">Discover</h1>
           
           {/* Type tabs */}
-          <div className="mb-4 flex gap-2">
+          <div className="mb-6 flex gap-2">
             {TYPES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  "rounded-full px-6 py-2.5 text-sm font-medium transition-all",
                   type === t.id
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                    : "bg-foreground/10 text-foreground/70 hover:bg-foreground/20 hover:text-foreground"
                 )}
               >
                 {t.label}
@@ -67,14 +67,14 @@ function DiscoverPage() {
           </div>
 
           {/* Genre filter */}
-          <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <div className="scrollbar-hide -mx-6 flex gap-2 overflow-x-auto px-6 pb-2 lg:-mx-16 lg:px-16">
             <button
               onClick={() => setGenre(null)}
               className={cn(
-                "flex-shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-all",
                 !genre
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50"
+                  ? "border-primary bg-primary/20 text-primary"
+                  : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
               )}
             >
               All
@@ -84,10 +84,10 @@ function DiscoverPage() {
                 key={g}
                 onClick={() => setGenre(g)}
                 className={cn(
-                  "flex-shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  "flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-all",
                   genre === g
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/50"
+                    ? "border-primary bg-primary/20 text-primary"
+                    : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
                 )}
               >
                 {g}
@@ -97,9 +97,9 @@ function DiscoverPage() {
         </div>
 
         {/* Content grid */}
-        <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6 lg:p-6 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 px-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6 lg:px-16 xl:grid-cols-6 2xl:grid-cols-7">
           {isLoading
-            ? Array.from({ length: 18 }).map((_, i) => (
+            ? Array.from({ length: 21 }).map((_, i) => (
                 <ContentCardSkeleton key={i} />
               ))
             : items?.map((item) => (
@@ -117,8 +117,8 @@ function DiscoverPage() {
 
         {/* Empty state */}
         {!isLoading && (!items || items.length === 0) && (
-          <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
-            <p className="text-muted-foreground">
+          <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+            <p className="text-lg text-muted-foreground">
               No content found for this category
             </p>
           </div>
